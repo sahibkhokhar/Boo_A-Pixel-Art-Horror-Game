@@ -140,13 +140,10 @@ class player(pg.sprite.Sprite):
 
     def Attack(self):
         if self.attack:
-            if enemy.rect.centerx <= self.rect.centerx + 90 or enemy.rect.centerx <= self.rect.centerx - 90:
-                if enemy.rect.centery <= self.rect.centery + 90 or enemy.rect.centery <= self.rect.centery - 90:
-                    enemies[i].hp -= 1
-
-    def die(self):
-        if self.hp <= 0:
-            self.kill()
+            for enemy in enemies:
+                if enemy.rect.centerx <= self.rect.centerx + 90 or enemy.rect.centerx <= self.rect.centerx - 90:
+                    if enemy.rect.centery <= self.rect.centery + 90 or enemy.rect.centery <= self.rect.centery - 90:
+                        enemy.dead = True
 
     def update(self):
         self.speed = [0, 0]
@@ -178,10 +175,14 @@ class Enemy(pg.sprite.Sprite):
         self.rebound_rect = None
         self.hp = 1
         self.screem = False
+        self.dead = False
 
-    def update(self):         # follow player function
+    def die(self):
+        if self.hp <= 0:
+            del self
+
+    def update(self):  # follow player function
         self.speed = [0, 0]
-        self.rebound_rect = self.rect.copy()
         if not player.rect.x + 200 <= self.rect.x or not player.rect.x - 200 <= self.rect.x:
             if not player.rect.y + 200 <= self.rect.y or not player.rect.y - 200 <= self.rect.y:
                 if not self.screem:
@@ -201,17 +202,17 @@ class Enemy(pg.sprite.Sprite):
                         self.speed[1] = 2
                         self.rect.y += self.speed[1]
                 else:
-                    player.hp -= 1
+                    player.hp -= 0
 
 
 map_render = MapRender()
 enemies = []
 all_sprites = pg.sprite.Group()
 enemy_sprite = pg.sprite.Group()
-for i in range(r.randint(1, map_gen[map_render.current_level]['enemy_amount'])):
+for i in range(2):
     enemy = Enemy()
+    all_sprites.add(enemy)
     enemies.append(enemy)
-    enemy_sprite.add(enemy)
 player = player()
 all_sprites.add(player)
 
@@ -220,18 +221,22 @@ def runGameFunc():
     map_render.render_tiles()
     player.colliders()
     player.Attack()
-    player.die()
+    enemy.die()
 
 
 def main():
     while True:
+        for enemy in enemies:
+            if enemy.dead:
+                all_sprites.remove(enemy)
+
         screen.fill(pg.Color('#33142b'))
         runGameFunc()
         all_sprites.update()
         all_sprites.draw(screen)
         enemy_sprite.update()
         enemy_sprite.draw(screen)
-        player.render_fog()
+        # player.render_fog()
 
         for event in pg.event.get():
             if event.type == pg.QUIT:
