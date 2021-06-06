@@ -1,82 +1,96 @@
-import sys
-import pygame as pg
-from images import *
-import random as r
 import json
+import os
+import random as r
+import sys
 
+import pygame as pg
+import pygame.mixer
+from pygame import mixer
+
+from images import *
+
+pygame.mixer.pre_init(44100, -16, 2, 2048 * 4)
 pygame.init()
 clock = pg.time.Clock()
-vec = pg.math.Vector2
 
 screen = pg.display.set_mode((1280, 720))
 tile_rects = []
 file = open("levels.json", "r")
 content = file.read()
 map_gen = json.loads(content)
-print(r.choice(map_gen['spawn_loc']))
 
-def render_tiles():
-    global tile_rects
-    tile_rects = []
-    y= 0
-    for row in map_gen['level']:
-        x = 0
-        for tile in row:
-            '''
-            0: Floor
-            1: Top Wall
-            2: Left Wall
-            3: Right Wall
-            4: Bot Wall
-            5: Top Left Corner
-            6: Top Right Corner
-            7: Bot Left Corner
-            8: Bot Right Corner
-            9: Top Right Sharp Corner
-            10: Top Left Sharp Corner
-            11: Bot Wall Left Curved
-            12: Bot Wall Right Curved
-            '''
-            if tile == 0:   # floor
-                screen.blit(floor_tile, (x*64, y*64))
-            elif tile == 1:   # top wall
-                screen.blit(top_wall, (x*64, y*64))
-                tile_rects.append(pygame.Rect(x*64, y*64, 64, 64))
-            elif tile == 2:   # left wall
-                screen.blit(left_wall, (x*64, y*64))
-                tile_rects.append(pygame.Rect(x*64, y*64, 64, 64))
-            elif tile == 3:   # right wall
-                screen.blit(right_wall, (x*64, y*64))
-                tile_rects.append(pygame.Rect(x*64, y*64, 64, 64))
-            elif tile == 4:   # bot wall
-                screen.blit(bottom_wall, (x*64, y*64))
-                tile_rects.append(pygame.Rect(x*64, y*64, 64, 64))
-            elif tile == 5:   # top left corner
-                screen.blit(top_left_corner, (x*64, y*64))
-                tile_rects.append(pygame.Rect(x*64, y*64, 64, 64))
-            elif tile == 6:   # top right corner
-                screen.blit(top_right_corner, (x*64, y*64))
-                tile_rects.append(pygame.Rect(x*64, y*64, 64, 64))
-            elif tile == 7:   # bot left corner
-                screen.blit(bot_left_corner, (x*64, y*64))
-                tile_rects.append(pygame.Rect(x*64, y*64, 64, 64))
-            elif tile == 8:   # bot right corner
-                screen.blit(bot_right_corner, (x*64, y*64))
-                tile_rects.append(pygame.Rect(x*64, y*64, 64, 64))
-            elif tile == 9:   # bot right corner
-                screen.blit(top_right_scorner, (x*64, y*64))
-                tile_rects.append(pygame.Rect(x*64, y*64, 64, 64))
-            elif tile == 10:   # bot right corner
-                screen.blit(top_left_scorner, (x*64, y*64))
-                tile_rects.append(pygame.Rect(x*64, y*64, 64, 64))
-            elif tile == 11:   # bot right corner
-                screen.blit(bot_rcurve, (x*64, y*64))
-                tile_rects.append(pygame.Rect(x*64, y*64, 64, 64))
-            elif tile == 12:   # bot right corner
-                screen.blit(bot_lcurve, (x*64, y*64))
-                tile_rects.append(pygame.Rect(x*64, y*64, 64, 64))
-            x+=1
-        y+= 1
+mixer.music.load(os.path.join("audio", "sad.ogg"))
+mixer.music.set_volume(.3)
+spotted_sound = mixer.Sound(("audio/ghostbreath.wav"))
+mixer.music.play(-1)
+
+
+class MapRender:
+    def __init__(self):
+        self.tile_rects = []
+        self.current_level = 0
+
+    def render_tiles(self):
+        y = 0
+        for row in map_gen[map_render.current_level]['level']:
+            x = 0
+            for tile in row:
+                '''
+                0: Floor
+                1: Top Wall
+                2: Left Wall
+                3: Right Wall
+                4: Bot Wall
+                5: Top Left Corner
+                6: Top Right Corner
+                7: Bot Left Corner
+                8: Bot Right Corner
+                9: Top Right Sharp Corner
+                10: Top Left Sharp Corner
+                11: Bot Wall Left Curved
+                12: Bot Wall Right Curved
+                '''
+                if tile == 0:  # floor
+                    screen.blit(floor_tile, (x * 64, y * 64))
+                elif tile == 1:  # top wall
+                    screen.blit(top_wall, (x * 64, y * 64))
+                    self.tile_rects.append(pygame.Rect(x * 64, y * 64, 64, 64))
+                elif tile == 2:  # left wall
+                    screen.blit(left_wall, (x * 64, y * 64))
+                    self.tile_rects.append(pygame.Rect(x * 64, y * 64, 64, 64))
+                elif tile == 3:  # right wall
+                    screen.blit(right_wall, (x * 64, y * 64))
+                    self.tile_rects.append(pygame.Rect(x * 64, y * 64, 64, 64))
+                elif tile == 4:  # bot wall
+                    screen.blit(bottom_wall, (x * 64, y * 64))
+                    self.tile_rects.append(pygame.Rect(x * 64, y * 64, 64, 64))
+                elif tile == 5:  # top left corner
+                    screen.blit(top_left_corner, (x * 64, y * 64))
+                    self.tile_rects.append(pygame.Rect(x * 64, y * 64, 64, 64))
+                elif tile == 6:  # top right corner
+                    screen.blit(top_right_corner, (x * 64, y * 64))
+                    self.tile_rects.append(pygame.Rect(x * 64, y * 64, 64, 64))
+                elif tile == 7:  # bot left corner
+                    screen.blit(bot_left_corner, (x * 64, y * 64))
+                    self.tile_rects.append(pygame.Rect(x * 64, y * 64, 64, 64))
+                elif tile == 8:  # bot right corner
+                    screen.blit(bot_right_corner, (x * 64, y * 64))
+                    self.tile_rects.append(pygame.Rect(x * 64, y * 64, 64, 64))
+                elif tile == 9:  # bot right corner
+                    screen.blit(top_right_scorner, (x * 64, y * 64))
+                    self.tile_rects.append(pygame.Rect(x * 64, y * 64, 64, 64))
+                elif tile == 10:  # bot right corner
+                    screen.blit(top_left_scorner, (x * 64, y * 64))
+                    self.tile_rects.append(pygame.Rect(x * 64, y * 64, 64, 64))
+                elif tile == 11:  # bot right corner
+                    screen.blit(bot_rcurve, (x * 64, y * 64))
+                    self.tile_rects.append(pygame.Rect(x * 64, y * 64, 64, 64))
+                elif tile == 12:  # bot right corner
+                    screen.blit(bot_lcurve, (x * 64, y * 64))
+                    self.tile_rects.append(pygame.Rect(x * 64, y * 64, 64, 64))
+                x += 1
+            y += 1
+
 
 class player(pg.sprite.Sprite):
     def __init__(self):
@@ -85,7 +99,7 @@ class player(pg.sprite.Sprite):
         self.image = player_img.convert()
         self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
-        self.rect.center = map_gen['player_loc']
+        self.rect.center = map_gen[map_render.current_level]['player_loc']
         self.speed = [0, 0]
         self.rebound_rect = None
         self.hp = 3
@@ -113,8 +127,8 @@ class player(pg.sprite.Sprite):
         return hit_list
 
     def colliders(self):
-        hit_list = self.collision_test(tile_rects)
-        for i in hit_list:
+        hit_list = self.collision_test(map_render.tile_rects)
+        for tile in hit_list:
             if self.speed[0] > 0:
                 self.rect.right = self.rebound_rect.right
             if self.speed[0] < 0:
@@ -126,9 +140,13 @@ class player(pg.sprite.Sprite):
 
     def Attack(self):
         if self.attack:
-            if enemy.rect.centerx <= self.rect.centerx+90 or enemy.rect.centerx <= self.rect.centerx-90:
+            if enemy.rect.centerx <= self.rect.centerx + 90 or enemy.rect.centerx <= self.rect.centerx - 90:
                 if enemy.rect.centery <= self.rect.centery + 90 or enemy.rect.centery <= self.rect.centery - 90:
-                        print('Hit')
+                    enemies[i].hp -= 1
+
+    def die(self):
+        if self.hp <= 0:
+            self.kill()
 
     def update(self):
         self.speed = [0, 0]
@@ -149,26 +167,27 @@ class player(pg.sprite.Sprite):
         elif not key_state[pg.K_SPACE]:
             self.attack = False
 
-
 class Enemy(pg.sprite.Sprite):
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
-        self.visible = False
         self.image = enemy_img.convert()
         self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
-        self.rect.center = r.choice(map_gen['spawn_loc'])
+        self.rect.center = r.choice(map_gen[map_render.current_level]['spawn_loc'])
         self.speed = [0, 0]
         self.rebound_rect = None
-        self.r_speed = r.random()
+        self.hp = 1
+        self.screem = False
 
     def update(self):         # follow player function
         self.speed = [0, 0]
         self.rebound_rect = self.rect.copy()
         if not player.rect.x + 200 <= self.rect.x or not player.rect.x - 200 <= self.rect.x:
             if not player.rect.y + 200 <= self.rect.y or not player.rect.y - 200 <= self.rect.y:
+                if not self.screem:
+                    spotted_sound.play()
+                    self.screem = True
                 if not self.rect.colliderect(player.rect):
-                    self.visible = True
                     if self.rect.x > player.rect.x:
                         self.speed[0] = 2
                         self.rect.x -= self.speed[0]
@@ -182,35 +201,45 @@ class Enemy(pg.sprite.Sprite):
                         self.speed[1] = 2
                         self.rect.y += self.speed[1]
                 else:
-                    pass
-                    # player takes damage
+                    player.hp -= 1
 
+
+map_render = MapRender()
+enemies = []
 all_sprites = pg.sprite.Group()
 enemy_sprite = pg.sprite.Group()
-for i in range(r.randint(2, map_gen['enemy_amount'])):
+for i in range(r.randint(1, map_gen[map_render.current_level]['enemy_amount'])):
     enemy = Enemy()
+    enemies.append(enemy)
     enemy_sprite.add(enemy)
-
 player = player()
 all_sprites.add(player)
+
+
+def runGameFunc():
+    map_render.render_tiles()
+    player.colliders()
+    player.Attack()
+    player.die()
+
+
 def main():
     while True:
         screen.fill(pg.Color('#33142b'))
-        render_tiles()
-        player.colliders()
-        player.Attack()
+        runGameFunc()
         all_sprites.update()
         all_sprites.draw(screen)
-        enemy_sprite.draw(screen)
         enemy_sprite.update()
+        enemy_sprite.draw(screen)
         player.render_fog()
+
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 file.close()
                 pg.quit()
                 sys.exit()
         pg.display.update()
-        clock.tick(60)
+        clock.tick()
 
 if __name__ == '__main__':
     main()
