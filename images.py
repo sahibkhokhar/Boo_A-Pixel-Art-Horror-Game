@@ -13,6 +13,10 @@ enemy_img = pygame.transform.scale(enemy_img, (10 * 4, 15 * 4))
 shadows = pygame.image.load(path.join("images", "light_mask.png"))
 fow = pygame.image.load(path.join("images", "dark_rect.png"))
 
+keyy = pygame.image.load(path.join("images", "key.png"))
+keyy = pygame.transform.scale(keyy, (64, 64))
+mini_key = pygame.transform.scale(keyy, (32, 32))
+
 # Map Tiles Imported From Good Tileset Folder
 floor_tile = pygame.image.load(path.join('good tileset', 'cross_floor.png'))
 floor_tile = pygame.transform.scale(floor_tile, (64, 64))
@@ -52,3 +56,6 @@ bot_rcurve = pygame.transform.scale(bot_rcurve, (64, 64))
 
 bot_lcurve = pygame.image.load(path.join('good tileset', 'bot_lcurve.png'))
 bot_lcurve = pygame.transform.scale(bot_lcurve, (64, 64))
+
+top_door = pygame.image.load(path.join('good tileset', 'top_door.png'))
+top_door = pygame.transform.scale(top_door, (64, 64))
