@@ -21,18 +21,18 @@ map_gen = json.loads(content)
 
 mixer.music.load(os.path.join("audio", "sad.ogg"))
 mixer.music.set_volume(.3)
-spotted_sound = mixer.Sound(("audio/ghostbreath.wav"))
+spotted_sound = mixer.Sound("audio/ghostbreath.wav")
 mixer.music.play(-1)
-
 
 class MapRender:
     def __init__(self):
         self.tile_rects = []
+        self.door_rect = None
         self.current_level = 0
 
     def render_tiles(self):
         y = 0
-        for row in map_gen[map_render.current_level]['level']:
+        for row in map_gen[self.current_level]['level']:
             x = 0
             for tile in row:
                 '''
@@ -88,9 +88,12 @@ class MapRender:
                 elif tile == 12:  # bot right corner
                     screen.blit(bot_lcurve, (x * 64, y * 64))
                     self.tile_rects.append(pygame.Rect(x * 64, y * 64, 64, 64))
+                elif tile == 13:  # bot right corner
+                    screen.blit(top_door, (x * 64, y * 64))
+                    self.tile_rects.append(pygame.Rect(x * 64, y * 64, 64, 64))
+                    self.door_rect = (pygame.Rect(x * 64, y * 64, 64, 70))
                 x += 1
             y += 1
-
 
 class player(pg.sprite.Sprite):
     def __init__(self):
@@ -102,8 +105,9 @@ class player(pg.sprite.Sprite):
         self.rect.center = map_gen[map_render.current_level]['player_loc']
         self.speed = [0, 0]
         self.rebound_rect = None
-        self.hp = 3
+        self.hp = 1
         self.attack = False
+        self.has_key = False
 
         # Fog Of War
         self.dark = True
@@ -145,6 +149,22 @@ class player(pg.sprite.Sprite):
                     if enemy.rect.centery <= self.rect.centery + 90 or enemy.rect.centery <= self.rect.centery - 90:
                         enemy.dead = True
 
+    def die(self):
+        if self.hp <= 0:
+            del self
+
+    def level_up(self):
+        if self.rect.colliderect(map_render.door_rect):
+            if self.has_key:
+                print('NEXT LEVEL!')
+                map_render.current_level += 1
+                map_render.tile_rects.clear()
+                player.__init__()
+                enemy.__init__()
+                key.__init__()
+            else:
+                print('NEED KEY!')
+
     def update(self):
         self.speed = [0, 0]
         self.rebound_rect = self.rect.copy()
@@ -179,12 +199,12 @@ class Enemy(pg.sprite.Sprite):
 
     def die(self):
         if self.hp <= 0:
-            del self
+            self.kill()
 
     def update(self):  # follow player function
         self.speed = [0, 0]
-        if not player.rect.x + 200 <= self.rect.x or not player.rect.x - 200 <= self.rect.x:
-            if not player.rect.y + 200 <= self.rect.y or not player.rect.y - 200 <= self.rect.y:
+        if not player.rect.x + 300 <= self.rect.x or not player.rect.x - 300 <= self.rect.x:
+            if not player.rect.y + 300 <= self.rect.y or not player.rect.y - 300 <= self.rect.y:
                 if not self.screem:
                     spotted_sound.play()
                     self.screem = True
@@ -202,40 +222,55 @@ class Enemy(pg.sprite.Sprite):
                         self.speed[1] = 2
                         self.rect.y += self.speed[1]
                 else:
-                    player.hp -= 0
+                    player.kill()
 
 
-map_render = MapRender()
+class Key(pg.sprite.Sprite):
+    def __init__(self):
+        pg.sprite.Sprite.__init__(self)
+        self.image = keyy
+        self.rect = self.image.get_rect()
+        self.rect.center = map_gen[map_render.current_level]["key_loc"]
+        self.simage = mini_key
+
+    def update(self):
+        if self.rect.colliderect(player.rect):
+            player.has_key = True
+        if player.has_key:
+            self.image = self.simage
+            self.rect.x = player.rect.x + 10
+            self.rect.y = player.rect.y + 25
+
+
 enemies = []
 all_sprites = pg.sprite.Group()
-enemy_sprite = pg.sprite.Group()
-for i in range(2):
+map_render = MapRender()
+player = player()
+key = Key()
+for i in range(r.randint(2, len(map_gen[map_render.current_level]['spawn_loc']))):
     enemy = Enemy()
     all_sprites.add(enemy)
     enemies.append(enemy)
-player = player()
 all_sprites.add(player)
-
-
-def runGameFunc():
-    map_render.render_tiles()
-    player.colliders()
-    player.Attack()
-    enemy.die()
+all_sprites.add(key)
 
 
 def main():
     while True:
+        print(key.rect)
         for enemy in enemies:
             if enemy.dead:
                 all_sprites.remove(enemy)
 
         screen.fill(pg.Color('#33142b'))
-        runGameFunc()
+        map_render.render_tiles()
+        player.colliders()
+        player.Attack()
+        enemy.die()
+        player.die()
+        player.level_up()
         all_sprites.update()
         all_sprites.draw(screen)
-        enemy_sprite.update()
-        enemy_sprite.draw(screen)
         # player.render_fog()
 
         for event in pg.event.get():
