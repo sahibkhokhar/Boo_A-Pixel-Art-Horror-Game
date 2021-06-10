@@ -15,8 +15,6 @@ clock = pg.time.Clock()
 
 screen = pg.display.set_mode((1280, 720))
 tile_rects = []
-enemies = []
-
 file = open("levels.json", "r")
 content = file.read()
 map_gen = json.loads(content)
@@ -159,14 +157,10 @@ class player(pg.sprite.Sprite):
         if self.rect.colliderect(map_render.door_rect):
             if self.has_key:
                 print('NEXT LEVEL!')
-                map_render.current_level += 1
-                map_render.tile_rects.clear()
-                enemies.clear()
-                player.__init__()
-                key.__init__()
-                enemy_render()
             else:
                 print('NEED KEY!')
+
+    def update(self):
         self.speed = [0, 0]
         self.rebound_rect = self.rect.copy()
         key_state = pg.key.get_pressed()
@@ -225,14 +219,14 @@ class Enemy(pg.sprite.Sprite):
                 else:
                     player.kill()
 
-
 class Key(pg.sprite.Sprite):
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
-        self.image = keyy
+        self.image = key
         self.rect = self.image.get_rect()
-        self.rect.center = map_gen[map_render.current_level]["key_loc"]
+        self.rect.center = [100, 100]
         self.simage = mini_key
+        self.srect = self.image.get_rect()
 
     def update(self):
         if self.rect.colliderect(player.rect):
@@ -242,27 +236,24 @@ class Key(pg.sprite.Sprite):
             self.rect.x = player.rect.x + 10
             self.rect.y = player.rect.y + 25
 
-map_render = MapRender()
+
+enemies = []
 all_sprites = pg.sprite.Group()
-enemy_sprites = pg.sprite.Group()
-def enemy_render():
-    for i in range(r.randint(2, len(map_gen[map_render.current_level]['spawn_loc']))):
-        enemy = Enemy()
-        enemy_sprites.add(enemy)
-        enemies.append(enemy)
-enemy_render()
+map_render = MapRender()
 player = player()
 key = Key()
+for i in range(r.randint(2, len(map_gen[map_render.current_level]['spawn_loc']))):
+    enemy = Enemy()
+    all_sprites.add(enemy)
+    enemies.append(enemy)
 all_sprites.add(player)
 all_sprites.add(key)
 
-
 def main():
     while True:
-        print(key.rect)
         for enemy in enemies:
             if enemy.dead:
-                enemy_sprites.remove(enemy)
+                all_sprites.remove(enemy)
 
         screen.fill(pg.Color('#33142b'))
         map_render.render_tiles()
@@ -273,8 +264,6 @@ def main():
         player.level_up()
         all_sprites.update()
         all_sprites.draw(screen)
-        enemy_sprites.update()
-        enemy_sprites.draw(screen)
         #player.render_fog()
 
         for event in pg.event.get():
