@@ -21,7 +21,7 @@ file = open("levels.json", "r")
 content = file.read()
 map_gen = json.loads(content)
 
-mixer.music.load(os.path.join("audio", "sad.ogg"))
+mixer.music.load(os.path.join("audio", "sad.wav"))
 mixer.music.set_volume(.3)
 spotted_sound = mixer.Sound("audio/ghostbreath.wav")
 mixer.music.play(-1)
@@ -266,7 +266,7 @@ def main():
         all_sprites.draw(screen)
         enemy_sprites.update()
         enemy_sprites.draw(screen)
-        #player.render_fog()
+        player.render_fog()
 
         for event in pg.event.get():
             if event.type == pg.QUIT:
